@@ -33,16 +33,22 @@ async function startWebhook(overrides = {}) {
   return { server, callbackDirectory, outputDirectory };
 }
 
-async function post(server, rawBody, { signature, sentTimestamp = timestamp } = {}) {
+async function post(server, rawBody, {
+  signature,
+  sentTimestamp = timestamp,
+  signed = true,
+} = {}) {
   const address = server.address();
   const headers = {
     "Content-Type": "application/json",
     "Content-Length": Buffer.byteLength(rawBody),
-    "X-HiAPI-Timestamp": sentTimestamp,
   };
-  if (signature !== null) {
-    headers["X-HiAPI-Signature"] =
-      signature ?? createWebhookSignature(secret, sentTimestamp, rawBody);
+  if (signed) {
+    headers["X-HiAPI-Timestamp"] = sentTimestamp;
+    if (signature !== null) {
+      headers["X-HiAPI-Signature"] =
+        signature ?? createWebhookSignature(secret, sentTimestamp, rawBody);
+    }
   }
 
   return new Promise((resolve, reject) => {
@@ -70,6 +76,24 @@ test("accepts a correctly signed callback and stores its exact body", async () =
 
   assert.equal(await post(server, body), 204);
   assert.equal(await readFile(path.join(callbackDirectory, "task-valid.json"), "utf8"), body);
+});
+
+test("accepts an unsigned callback when no signing secret is configured", async () => {
+  const { server, callbackDirectory } = await startWebhook({ secret: undefined });
+  const body = '{"taskId":"task-unsigned","status":"success","output":[]}';
+
+  assert.equal(await post(server, body, { signed: false }), 204);
+  assert.equal(
+    await readFile(path.join(callbackDirectory, "task-unsigned.json"), "utf8"),
+    body,
+  );
+});
+
+test("rejects signature headers when the local signing secret is missing", async () => {
+  const { server } = await startWebhook({ secret: undefined });
+  const body = '{"taskId":"task-config-mismatch","status":"success","output":[]}';
+
+  assert.equal(await post(server, body), 401);
 });
 
 test("rejects a body changed after signing", async () => {

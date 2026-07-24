@@ -50,7 +50,7 @@ Both examples use the current [Unified Async API](https://dev.hiapi.ai/docs/asyn
 
 The receiver must be running and publicly reachable before the video task is submitted. Use this order:
 
-1. In the HiAPI account settings, set a Webhook signing secret between 16 and 256 characters. Put the same value in `.env` as `HIAPI_WEBHOOK_SECRET`.
+1. Webhook signing is optional. For signature verification, set a 16-256 character Webhook signing secret in the HiAPI account settings and put the same value in `.env` as `HIAPI_WEBHOOK_SECRET`. To use unsigned callbacks, leave the secret empty in both places.
 2. Start the local receiver:
 
    ```bash
@@ -134,7 +134,7 @@ initial attempt -> about +1 minute -> about +5 minutes -> about +20 minutes
 
 After four failed attempts, delivery stops without changing the task's own status. Use `npm run task -- <taskId>` to recover the result.
 
-When a signing secret is configured, HiAPI sends `X-HiAPI-Timestamp` and `X-HiAPI-Signature`. Verification uses:
+When a signing secret is configured, HiAPI sends `X-HiAPI-Timestamp` and `X-HiAPI-Signature`. When it is not configured, these headers are omitted and the example accepts the unsigned callback. Verification uses:
 
 ```text
 hex(HMAC_SHA256(secret, timestamp + "." + rawRequestBody))
@@ -148,7 +148,7 @@ Verify the exact bytes before parsing JSON, use a constant-time comparison, and 
 | --- | --- | --- |
 | `HIAPI_API_KEY` | `image`, `video`, `task` | HiAPI bearer token. Never commit `.env`. |
 | `HIAPI_WEBHOOK_URL` | `video` | Complete public callback URL, including `/api/hiapi/webhook`. |
-| `HIAPI_WEBHOOK_SECRET` | `webhook` | Must match the account-level Webhook signing secret. |
+| `HIAPI_WEBHOOK_SECRET` | `webhook` | Optional. When set, it must match the account-level Webhook signing secret. |
 | `HIAPI_IMAGE_PROMPT` | `image` | Optional prompt override; the example has a runnable default. |
 | `HIAPI_VIDEO_PROMPT` | `video` | Optional prompt override; the example has a runnable default. |
 | `PORT` | `webhook` | Local receiver port; defaults to `3000`. |

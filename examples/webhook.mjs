@@ -48,8 +48,6 @@ export function createWebhookHandler({
   fetchImpl = fetch,
   onBackgroundError = console.error,
 } = {}) {
-  if (!secret) throw new Error("HIAPI_WEBHOOK_SECRET is required");
-
   return async function webhookHandler(request, response) {
     if (request.method !== "POST" || request.url !== "/api/hiapi/webhook") {
       response.writeHead(404).end();
@@ -64,14 +62,18 @@ export function createWebhookHandler({
       return;
     }
 
-    const valid = verifyWebhookSignature({
-      secret,
-      timestamp: request.headers["x-hiapi-timestamp"],
-      signature: request.headers["x-hiapi-signature"],
-      rawBody,
-      now: now(),
-    });
-    if (!valid) {
+    const timestamp = request.headers["x-hiapi-timestamp"];
+    const signature = request.headers["x-hiapi-signature"];
+    const validSignature = secret
+      ? verifyWebhookSignature({
+          secret,
+          timestamp,
+          signature,
+          rawBody,
+          now: now(),
+        })
+      : timestamp === undefined && signature === undefined;
+    if (!validSignature) {
       response.writeHead(401).end();
       return;
     }
@@ -139,6 +141,9 @@ if (isEntryPoint) {
   const port = Number(process.env.PORT ?? 3000);
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error("PORT must be an integer between 1 and 65535");
+  }
+  if (!secret) {
+    console.warn("Webhook signature verification is disabled");
   }
   createWebhookServer({ secret }).listen(port, () => {
     console.log(`Webhook listening on http://localhost:${port}/api/hiapi/webhook`);

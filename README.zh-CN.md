@@ -50,7 +50,7 @@ npm run image
 
 提交视频任务前，接收服务必须已经运行并且可从公网访问。请严格按以下顺序操作：
 
-1. 在 HiAPI 控制台账号设置中配置一个 16 至 256 字符的 Webhook 签名密钥，并把同一个值填写到 `.env` 的 `HIAPI_WEBHOOK_SECRET`。
+1. Webhook 签名是可选项。如需验签，在 HiAPI 控制台账号设置中配置一个 16 至 256 字符的签名密钥，并把同一个值填写到 `.env` 的 `HIAPI_WEBHOOK_SECRET`；如使用无签名回调，账号设置和 `.env` 都保持为空。
 2. 启动本地回调服务：
 
    ```bash
@@ -134,7 +134,7 @@ HiAPI 最多等待接收方 10 秒返回 2xx。接收方应先持久化回调再
 
 4 次均失败后停止投递，但不会改变任务自身状态。此时使用 `npm run task -- <taskId>` 查询补漏。
 
-配置签名密钥后，HiAPI 会发送 `X-HiAPI-Timestamp` 和 `X-HiAPI-Signature`。签名计算方式为：
+配置签名密钥后，HiAPI 会发送 `X-HiAPI-Timestamp` 和 `X-HiAPI-Signature`；未配置时不会发送这两个请求头，示例会接收无签名回调。签名计算方式为：
 
 ```text
 hex(HMAC_SHA256(secret, timestamp + "." + rawRequestBody))
@@ -148,7 +148,7 @@ hex(HMAC_SHA256(secret, timestamp + "." + rawRequestBody))
 | --- | --- | --- |
 | `HIAPI_API_KEY` | `image`、`video`、`task` | HiAPI Bearer Token。不要提交 `.env`。 |
 | `HIAPI_WEBHOOK_URL` | `video` | 完整公网回调地址，必须包含 `/api/hiapi/webhook`。 |
-| `HIAPI_WEBHOOK_SECRET` | `webhook` | 必须与账号级 Webhook 签名密钥一致。 |
+| `HIAPI_WEBHOOK_SECRET` | `webhook` | 可选；填写时必须与账号级 Webhook 签名密钥一致。 |
 | `HIAPI_IMAGE_PROMPT` | `image` | 可选的图片提示词覆盖值；示例自带可运行默认值。 |
 | `HIAPI_VIDEO_PROMPT` | `video` | 可选的视频提示词覆盖值；示例自带可运行默认值。 |
 | `PORT` | `webhook` | 本地回调服务端口，默认 `3000`。 |
