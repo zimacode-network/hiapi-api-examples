@@ -1,0 +1,17 @@
+{
+  "name": "hiapi-api-examples",
+  "version": "0.1.0",
+  "description": "Runnable examples for the HiAPI unified task API",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "image": "node --env-file=.env examples/image.mjs",
+    "video": "node --env-file=.env examples/video.mjs",
+    "webhook": "node --env-file=.env examples/webhook.mjs",
+    "task": "node --env-file=.env examples/task.mjs",
+    "test": "node --test"
+  }
+}
