@@ -1,10 +1,12 @@
 import { saveTaskResult, submitTask, waitForTask } from '../src/task-client.mjs';
 
+const prompt = process.env.HIAPI_IMAGE_PROMPT?.trim()
+  || 'A cinematic photograph of a red lighthouse on a rocky coast at sunrise';
+
 const submitted = await submitTask({
   model: 'flux-schnell/text-to-image',
   input: {
-    prompt: process.env.HIAPI_IMAGE_PROMPT
-      ?? 'A cinematic photograph of a red lighthouse on a rocky coast at sunrise',
+    prompt,
     aspect_ratio: '4:3',
     num_inference_steps: 1,
   },
