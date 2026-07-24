@@ -130,6 +130,7 @@ test("rejects non-final and invalid task payloads", async () => {
     '{"taskId":"task-active","status":"handling"}',
     '{"status":"success","output":[]}',
     '{"taskId":"../escape","status":"success","output":[]}',
+    `{"taskId":"${"a".repeat(101)}","status":"success","output":[]}`,
     "not-json",
   ];
 

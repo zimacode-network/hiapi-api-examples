@@ -11,7 +11,7 @@ const DEFAULT_MAX_BODY_BYTES = 1024 * 1024;
 function safeTaskId(taskId) {
   if (
     typeof taskId !== "string" ||
-    !/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(taskId)
+    !/^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$/.test(taskId)
   ) {
     throw new Error("Invalid taskId");
   }
@@ -137,6 +137,9 @@ const isEntryPoint =
 if (isEntryPoint) {
   const secret = process.env.HIAPI_WEBHOOK_SECRET;
   const port = Number(process.env.PORT ?? 3000);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error("PORT must be an integer between 1 and 65535");
+  }
   createWebhookServer({ secret }).listen(port, () => {
     console.log(`Webhook listening on http://localhost:${port}/api/hiapi/webhook`);
   });
